@@ -10,25 +10,32 @@ use WebChemistry\Html\Node\NodeProcessor;
 final class DomVisitor
 {
 
-	/**
-	 * @param NodeVisitor[] $visitors
-	 */
-	public function __construct(
-		private array $visitors = [],
-	)
-	{
-	}
+	/** @var NodeVisitor[] */
+	private array $nodeVisitors = [];
 
-	public function addVisitor(NodeVisitor $visitor): self
+	/** @var DocumentVisitor[] */
+	private array $documentVisitors = [];
+
+	public function addVisitor(NodeVisitor|DocumentVisitor $visitor): self
 	{
-		$this->visitors[] = $visitor;
+		if ($visitor instanceof DocumentVisitor) {
+			$this->documentVisitors[] = $visitor;
+		} else {
+			$this->nodeVisitors[] = $visitor;
+		}
 
 		return $this;
 	}
 
-	public function visit(DOMDocumentFragment $node): void
+	public function visit(DOMNode $node): void
 	{
-		$this->visitChildren($node, $this->visitors);
+		if ($document = $node->ownerDocument) {
+			foreach ($this->documentVisitors as $visitor) {
+				$visitor->enterDocument($document);
+			}
+		}
+
+		$this->visitChildren($node, $this->nodeVisitors);
 	}
 
 	/**
@@ -36,6 +43,10 @@ final class DomVisitor
 	 */
 	private function visitChildren(DOMNode $node, array $visitors): void
 	{
+		if (!$visitors) {
+			return;
+		}
+
 		$node = $node->firstChild;
 		while ($node) {
 			$current = $node;
