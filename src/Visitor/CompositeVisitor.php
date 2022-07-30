@@ -7,7 +7,7 @@ use WebChemistry\Html\Node\NodeProcessor;
 use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 
-final class CompositeVisitor extends AbstractNodeVisitor
+class CompositeVisitor extends AbstractNodeVisitor
 {
 
 	/** @var NodeVisitor[] */
