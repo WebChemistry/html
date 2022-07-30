@@ -29,6 +29,15 @@ final class DomVisitor
 		return $this;
 	}
 
+	public function addVisitors(NodeVisitor|DocumentVisitor ... $visitors): self
+	{
+		foreach ($visitors as $visitor) {
+			$this->addVisitor($visitor);
+		}
+
+		return $this;
+	}
+
 	public function visit(DOMNode $node): void
 	{
 		if ($document = $node->ownerDocument) {
