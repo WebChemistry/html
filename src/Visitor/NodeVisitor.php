@@ -3,12 +3,17 @@
 namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
-use WebChemistry\Html\Node\Action\TraverserAction;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
+use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 
 interface NodeVisitor
 {
 
-	public function enterNode(DOMNode $node, NodeProcessor $processor): DOMNode|TraverserAction|null;
+	public function beforeTraverse(DOMNode $node): void;
+
+	public function enterNode(DOMNode $node, NodeProcessor $processor, NodeEnterMode $mode): ?DOMNode;
+
+	public function leaveNode(DOMNode $node, NodeProcessor $processor, NodeLeaveMode $mode): ?DOMNode;
 
 }

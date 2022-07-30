@@ -2,10 +2,10 @@
 
 namespace WebChemistry\Html\Visitor;
 
-use DOMDocumentFragment;
 use DOMNode;
-use WebChemistry\Html\Node\Action\TraverserAction;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
+use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 
 final class DomVisitor
 {
@@ -20,7 +20,9 @@ final class DomVisitor
 	{
 		if ($visitor instanceof DocumentVisitor) {
 			$this->documentVisitors[] = $visitor;
-		} else {
+		}
+
+		if ($visitor instanceof NodeVisitor) {
 			$this->nodeVisitors[] = $visitor;
 		}
 
@@ -33,6 +35,10 @@ final class DomVisitor
 			foreach ($this->documentVisitors as $visitor) {
 				$visitor->enterDocument($document);
 			}
+		}
+
+		foreach ($this->nodeVisitors as $visitor) {
+			$visitor->beforeTraverse($node);
 		}
 
 		$this->visitChildren($node, $this->nodeVisitors);
@@ -63,23 +69,41 @@ final class DomVisitor
 	{
 		$processor = new NodeProcessor($node);
 
-		foreach ($visitors as $key => $visitor) {
-			$return = $visitor->enterNode($node, $processor);
+		$enterVisitors = $visitors;
 
-			if ($return instanceof TraverserAction) {
-				if ($return === TraverserAction::DONT_TRAVERSE_CHILDREN) {
-					unset($visitors[$key]);
-				} else if ($return === TraverserAction::STOP_TRAVERSAL) {
-					break;
-				}
-			} else if ($return instanceof DOMNode) {
+		foreach ($enterVisitors as $key => $visitor) {
+			$return = $visitor->enterNode($node, $processor, $mode = new NodeEnterMode());
+
+			if ($return !== null) {
 				$node->parentNode?->replaceChild($return, $node);
 
 				return;
 			}
+
+			if ($mode->dontTraverseChildren) {
+				unset($enterVisitors[$key]);
+			}
+
+			if ($mode->stopTraversal) {
+				break;
+			}
 		}
 
-		$this->visitChildren($node, $visitors);
+		$this->visitChildren($node, $enterVisitors);
+
+		foreach ($visitors as $visitor) {
+			$return = $visitor->leaveNode($node, $processor, $mode = new NodeLeaveMode());
+
+			if ($return !== null) {
+				$node->parentNode?->replaceChild($return, $node);
+
+				return;
+			}
+
+			if ($mode->stopTraversal) {
+				break;
+			}
+		}
 	}
 
 }

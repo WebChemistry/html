@@ -3,26 +3,45 @@
 namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
-use WebChemistry\Html\Node\Action\TraverserAction;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
+use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 
-class CallbackVisitor implements NodeVisitor
+class CallbackVisitor extends AbstractNodeVisitor
 {
 
-	/** @var callable(DOMNode, NodeProcessor): (DOMNode|TraverserAction|null) */
-	private $callback;
+	/** @var callable(DOMNode, NodeProcessor, NodeEnterMode): (DOMNode|null)|null */
+	private $enter;
+
+	/** @var callable(DOMNode, NodeProcessor, NodeLeaveMode): (DOMNode|null)|null */
+	private $leave;
 
 	/**
-	 * @param callable(DOMNode, NodeProcessor): (DOMNode|TraverserAction|null) $callback
+	 * @param callable(DOMNode, NodeProcessor, NodeEnterMode): (DOMNode|null)|null $enter
+	 * @param callable(DOMNode, NodeProcessor, NodeLeaveMode): (DOMNode|null)|null $leave
 	 */
-	public function __construct(callable $callback)
+	public function __construct(?callable $enter = null, ?callable $leave = null)
 	{
-		$this->callback = $callback;
+		$this->enter = $enter;
+		$this->leave = $leave;
 	}
 
-	public function enterNode(DOMNode $node, NodeProcessor $processor): DOMNode|TraverserAction|null
+	public function enterNode(DOMNode $node, NodeProcessor $processor, NodeEnterMode $mode): ?DOMNode
 	{
-		return ($this->callback)($node, $processor);
+		if (!$this->enter) {
+			return null;
+		}
+
+		return ($this->enter)($node, $processor, $mode);
+	}
+
+	public function leaveNode(DOMNode $node, NodeProcessor $processor, NodeLeaveMode $mode): ?DOMNode
+	{
+		if (!$this->leave) {
+			return null;
+		}
+
+		return ($this->leave)($node, $processor, $mode);
 	}
 
 }
