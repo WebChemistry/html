@@ -2,10 +2,12 @@
 
 namespace WebChemistry\Html;
 
-use LogicException;
+use DomainException;
+use DOMNode;
 use Symfony\Component\HtmlSanitizer\Parser\MastermindsParser;
 use Symfony\Component\HtmlSanitizer\Parser\ParserInterface;
 use WebChemistry\Html\Exception\ParseException;
+use WebChemistry\Html\Renderer\NodeRenderer;
 use WebChemistry\Html\Visitor\DomVisitor;
 
 final class HtmlParser
@@ -22,25 +24,28 @@ final class HtmlParser
 		$this->visitor = new DomVisitor();
 	}
 
-	public function parse(string $content): string
+	public function parse(string|DOMNode $content): string
 	{
-		$node = $this->parser->parse($content);
+		$node = $this->parseOnly($content);
+
+		try {
+			return NodeRenderer::render($node);
+		} catch (DomainException $exception) {
+			throw new ParseException($exception->getMessage());
+		}
+	}
+
+	public function parseOnly(string|DOMNode $content): DOMNode
+	{
+		$node = is_string($content) ? $this->parser->parse($content) : $content;
 
 		if (!$node) {
-			return $content;
-		}
-
-		if (!($document = $node->ownerDocument)) {
-			throw new ParseException('Document is not set.');
+			throw new ParseException('Cannot create node from content.');
 		}
 
 		$this->visitor->visit($node);
 
-		if (($content = $document->saveHTML($node)) === false) {
-			throw new ParseException('Cannot convert html node to string.');
-		}
-
-		return $content;
+		return $node;
 	}
 
 }
