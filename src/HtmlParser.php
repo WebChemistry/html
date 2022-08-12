@@ -24,6 +24,11 @@ final class HtmlParser
 		$this->visitor = new DomVisitor();
 	}
 
+	public function createNode(string $content): ?DOMNode
+	{
+		return $this->parser->parse($content);
+	}
+
 	public function parse(string|DOMNode $content): string
 	{
 		$node = $this->parseOnly($content);
@@ -37,7 +42,7 @@ final class HtmlParser
 
 	public function parseOnly(string|DOMNode $content): DOMNode
 	{
-		$node = is_string($content) ? $this->parser->parse($content) : $content;
+		$node = is_string($content) ? $this->createNode($content) : $content;
 
 		if (!$node) {
 			throw new ParseException('Cannot create node from content.');
