@@ -8,8 +8,6 @@ use Nette\Utils\Strings;
 final class TrimVisitor extends AbstractNodeVisitor
 {
 
-	private const REGEX = '(?:\s|\xC2\xA0)';
-
 	/**
 	 * @param string[] $names
 	 * @param bool $startTrim Removes empty elements from start
@@ -127,7 +125,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 				continue;
 			}
 
-			$trimmed = Strings::replace($text->textContent, '#^' . (self::REGEX) . '+#', '');
+			$trimmed = self::ltrim($text->textContent);
 
 			if ($trimmed !== $text->textContent) {
 				$text->textContent = $trimmed;
@@ -149,7 +147,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 				continue;
 			}
 
-			$trimmed = Strings::replace($text->textContent, '#' . (self::REGEX) . '+$#', '');
+			$trimmed = self::rtrim($text->textContent);
 
 			if ($trimmed !== $text->textContent) {
 				$text->textContent = $trimmed;
@@ -204,17 +202,17 @@ final class TrimVisitor extends AbstractNodeVisitor
 
 	public static function trim(string $content): string
 	{
-		return Strings::replace($content, '#^' . self::REGEX . '+(.*?)' . self::REGEX . '+$#', '$1');
+		return Strings::replace($content, '#^\s*(.*?)\s*$#u', '$1');
 	}
 
 	public static function ltrim(string $content): string
 	{
-		return Strings::replace($content, '#^' . self::REGEX . '+#');
+		return Strings::replace($content, '#^\s+#u');
 	}
 
 	public static function rtrim(string $content): string
 	{
-		return Strings::replace($content, '#' . self::REGEX . '+$#');
+		return Strings::replace($content, '#\s+$#u');
 	}
 
 }
