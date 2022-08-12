@@ -15,12 +15,13 @@ final class HtmlParser
 
 	public readonly DomVisitor $visitor;
 
-	public function __construct(
-		private ParserInterface $parser = new MastermindsParser([
-			'disable_html_ns' => true,
-		]),
-	)
+	private ParserInterface $parser;
+
+	public function __construct(?ParserInterface $parser = null)
 	{
+		$this->parser = $parser ?? new MastermindsParser([
+			'disable_html_ns' => true,
+		]);
 		$this->visitor = new DomVisitor();
 	}
 
