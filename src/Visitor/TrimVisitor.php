@@ -204,7 +204,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 
 	public static function trim(string $content): string
 	{
-		return self::rtrim(self::ltrim($content));
+		return Strings::replace($content, '#^' . self::REGEX . '+(.*?)' . self::REGEX . '+$#', '$1');
 	}
 
 	public static function ltrim(string $content): string
