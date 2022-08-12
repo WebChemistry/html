@@ -2,11 +2,10 @@
 
 namespace WebChemistry\Html\Visitor;
 
-use DOMDocument;
 use DOMNode;
 use Nette\Utils\Strings;
 
-final class TopLevelTrimVisitor extends AbstractNodeVisitor
+final class TrimVisitor extends AbstractNodeVisitor
 {
 
 	private const REGEX = '(?:\s|\xC2\xA0)';
@@ -106,17 +105,12 @@ final class TopLevelTrimVisitor extends AbstractNodeVisitor
 		}
 
 		if (($child = $node->firstChild) && $child->nodeName === '#text' && $child === $node->lastChild) {
-			if ($this->trim($child->textContent) === '') {
+			if (self::trim($child->textContent) === '') {
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	private function trim(string $string): string
-	{
-		return Strings::replace($string, '#' . self::REGEX . '#', '');
 	}
 
 	private function leftTrim(DOMNode $node): void
@@ -206,6 +200,21 @@ final class TopLevelTrimVisitor extends AbstractNodeVisitor
 			$counter = 0;
 			$child = $child->nextSibling;
 		}
+	}
+
+	public static function trim(string $content): string
+	{
+		return self::rtrim(self::ltrim($content));
+	}
+
+	public static function ltrim(string $content): string
+	{
+		return Strings::replace($content, '#^' . self::REGEX . '+#');
+	}
+
+	public static function rtrim(string $content): string
+	{
+		return Strings::replace($content, '#' . self::REGEX . '+$#');
 	}
 
 }
