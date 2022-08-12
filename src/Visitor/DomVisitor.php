@@ -46,6 +46,10 @@ final class DomVisitor
 			}
 		}
 
+		if (!$this->nodeVisitors) {
+			return;
+		}
+
 		foreach ($this->nodeVisitors as $visitor) {
 			$visitor->beforeTraverse($node);
 		}
