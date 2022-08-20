@@ -11,20 +11,21 @@ use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 final class DomVisitor
 {
 
-	/** @var NodeVisitor[] */
-	private array $nodeVisitors = [];
-
-	public function addVisitor(NodeVisitor $visitor): self
+	/**
+	 * @param NodeVisitor[] $nodeVisitors
+	 */
+	public function __construct(
+		private array $nodeVisitors = [],
+	)
 	{
-		$this->nodeVisitors[] = $visitor;
-
-		return $this;
 	}
 
-	public function addVisitors(NodeVisitor ... $visitors): self
+	public function addVisitor(NodeVisitor $visitor, ?int $insert = null): self
 	{
-		foreach ($visitors as $visitor) {
+		if ($insert === null) {
 			$this->nodeVisitors[] = $visitor;
+		} else {
+			array_splice($this->nodeVisitors, $insert, 0, [$visitor]);
 		}
 
 		return $this;
