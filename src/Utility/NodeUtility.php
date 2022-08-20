@@ -4,6 +4,7 @@ namespace WebChemistry\Html\Utility;
 
 use DomainException;
 use DOMDocument;
+use DOMElement;
 use DOMNode;
 use DOMNodeList;
 use DOMXPath;
@@ -39,6 +40,14 @@ final class NodeUtility
 		}
 
 		return self::filter($node, $tagName);
+	}
+
+	public static function appendAttribute(DOMElement $element, string $attribute, string $value): void
+	{
+		$element->setAttribute(
+			$attribute,
+			($val = $element->getAttribute($attribute)) ? $val . ' ' . $value : $value,
+		);
 	}
 
 }
