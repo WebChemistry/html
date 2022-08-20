@@ -31,7 +31,27 @@ final class NodeUtility
 	}
 
 	/**
-	 * @return DOMNodeList<DOMNode>
+	 * @return iterable<DOMElement>
+	 */
+	public static function filterElements(DOMNode $node, string $selector): iterable
+	{
+		$result = (new DOMXPath(NodeRenderer::getDocument($node)))->query(
+			(new CssSelectorConverter())->toXPath($selector), $node,
+		);
+
+		if ($result === false) {
+			throw new DomainException(sprintf('Selector "%s" is invalid or DOM node is invalid.', $selector));
+		}
+
+		foreach ($result as $item) {
+			if ($item instanceof DOMElement) {
+				yield $item;
+			}
+		}
+	}
+
+	/**
+	 * @return DOMNodeList<DOMElement>
 	 */
 	public static function getElementsByTagName(DOMNode $node, string $tagName): DOMNodeList
 	{
@@ -39,6 +59,7 @@ final class NodeUtility
 			return $node->getElementsByTagName($tagName);
 		}
 
+		/** @var DOMNodeList<DOMElement> */
 		return self::filter($node, $tagName);
 	}
 
