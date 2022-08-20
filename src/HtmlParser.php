@@ -29,11 +29,20 @@ final class HtmlParser
 		$this->visitor = new DomVisitor($visitors);
 	}
 
-	public function withVisitor(NodeVisitor $visitor, NodeVisitor|int|null $insertBefore = null): self
+	public function withVisitor(NodeVisitor $visitor, ?int $insertBefore = null): self
 	{
 		$self = new self([], $this->parser);
 		$self->visitor = clone $this->visitor;
 		$self->visitor->addVisitor($visitor, $insertBefore);
+
+		return $self;
+	}
+
+	public function withVisitors(NodeVisitor ... $visitors): self
+	{
+		$self = new self([], $this->parser);
+		$self->visitor = clone $this->visitor;
+		$self->visitor->addVisitors($visitors);
 
 		return $self;
 	}

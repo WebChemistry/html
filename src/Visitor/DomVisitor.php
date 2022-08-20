@@ -31,6 +31,18 @@ final class DomVisitor
 		return $this;
 	}
 
+	/**
+	 * @param NodeVisitor[] $visitors
+	 */
+	public function addVisitors(array $visitors): self
+	{
+		foreach ($visitors as $visitor) {
+			$this->nodeVisitors[] = $visitor;
+		}
+
+		return $this;
+	}
+
 	public function visit(DOMNode $node): void
 	{
 		if (!$this->nodeVisitors) {
