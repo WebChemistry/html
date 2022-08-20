@@ -4,6 +4,7 @@ namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
 use Nette\Utils\Strings;
+use WebChemistry\Html\Visitor\Mode\BeforeTraverseMode;
 
 final class TrimVisitor extends AbstractNodeVisitor
 {
@@ -27,7 +28,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	{
 	}
 
-	public function beforeTraverse(DOMNode $node): void
+	public function beforeTraverse(DOMNode $node, BeforeTraverseMode $mode): void
 	{
 		if ($this->startTrim) {
 			$this->startTrim($node);

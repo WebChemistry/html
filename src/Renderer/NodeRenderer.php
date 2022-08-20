@@ -14,6 +14,10 @@ final class NodeRenderer
 	 */
 	public static function getDocument(DOMNode $node): DOMDocument
 	{
+		if ($node instanceof DOMDocument) {
+			return $node;
+		}
+
 		return $node->ownerDocument ?? throw new DomainException('Document is not set.');
 	}
 

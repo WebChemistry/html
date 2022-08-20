@@ -24,6 +24,11 @@ final class NodeTypeFilterIterator extends IteratorIterator
 		);
 	}
 
+	/**
+	 * @template TValue of DOMNode
+	 * @param class-string<TValue> $className
+	 * @return Generator<TValue>
+	 */
 	public static function createFloatingGenerator(DOMNode $node, string $className, ?int $depth = null): Generator
 	{
 		if ($node instanceof $className) {
@@ -42,9 +47,9 @@ final class NodeTypeFilterIterator extends IteratorIterator
 	}
 
 	/**
-	 * @template T of DOMNode
-	 * @param class-string<T> $className
-	 * @return Generator<T>
+	 * @template TValue of DOMNode
+	 * @param class-string<TValue> $className
+	 * @return Generator<TValue>
 	 */
 	public static function createGenerator(DOMNode $node, string $className, ?int $depth = null): Generator
 	{

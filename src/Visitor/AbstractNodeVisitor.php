@@ -4,13 +4,14 @@ namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\BeforeTraverseMode;
 use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 
 abstract class AbstractNodeVisitor implements NodeVisitor
 {
 
-	public function beforeTraverse(DOMNode $node): void
+	public function beforeTraverse(DOMNode $node, BeforeTraverseMode $mode): void
 	{
 	}
 

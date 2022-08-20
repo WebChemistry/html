@@ -4,6 +4,7 @@ namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\BeforeTraverseMode;
 use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 
@@ -13,26 +14,17 @@ final class DomVisitor
 	/** @var NodeVisitor[] */
 	private array $nodeVisitors = [];
 
-	/** @var DocumentVisitor[] */
-	private array $documentVisitors = [];
-
-	public function addVisitor(NodeVisitor|DocumentVisitor $visitor): self
+	public function addVisitor(NodeVisitor $visitor): self
 	{
-		if ($visitor instanceof DocumentVisitor) {
-			$this->documentVisitors[] = $visitor;
-		}
-
-		if ($visitor instanceof NodeVisitor) {
-			$this->nodeVisitors[] = $visitor;
-		}
+		$this->nodeVisitors[] = $visitor;
 
 		return $this;
 	}
 
-	public function addVisitors(NodeVisitor|DocumentVisitor ... $visitors): self
+	public function addVisitors(NodeVisitor ... $visitors): self
 	{
 		foreach ($visitors as $visitor) {
-			$this->addVisitor($visitor);
+			$this->nodeVisitors[] = $visitor;
 		}
 
 		return $this;
@@ -40,21 +32,21 @@ final class DomVisitor
 
 	public function visit(DOMNode $node): void
 	{
-		if ($document = $node->ownerDocument) {
-			foreach ($this->documentVisitors as $visitor) {
-				$visitor->enterDocument($document);
-			}
-		}
-
 		if (!$this->nodeVisitors) {
 			return;
 		}
 
-		foreach ($this->nodeVisitors as $visitor) {
-			$visitor->beforeTraverse($node);
+		$visitors = $this->nodeVisitors;
+
+		foreach ($this->nodeVisitors as $i => $visitor) {
+			$visitor->beforeTraverse($node, $mode = new BeforeTraverseMode());
+
+			if ($mode->dontTraverseChildren) {
+				unset($visitors[$i]);
+			}
 		}
 
-		$this->visitChildren($node, $this->nodeVisitors);
+		$this->visitChildren($node, $visitors);
 	}
 
 	/**
