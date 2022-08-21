@@ -2,9 +2,14 @@
 
 namespace WebChemistry\Html;
 
+use WebChemistry\Html\Visitor\NodeVisitor;
+
 interface HtmlParserFactory
 {
 
-	public function create(): HtmlParser;
+	/**
+	 * @param NodeVisitor[] $visitors
+	 */
+	public function create(array $visitors = []): HtmlParser;
 
 }
