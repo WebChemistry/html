@@ -71,4 +71,32 @@ final class NodeUtility
 		);
 	}
 
+	public static function removeNodeKeepChildren(DOMNode $node): void
+	{
+		$parent = $node->parentNode;
+		if (!$parent) {
+			throw new DomainException('DOMNode does not have parent node.');
+		}
+
+		$length = $node->childNodes->length;
+		if ($length === 0) {
+			$parent->removeChild($node);
+
+			return;
+		}
+
+		if ($length === 1 && ($first = $node->firstChild)) {
+			$parent->replaceChild($first, $node);
+
+			return;
+		}
+
+		/** @var DOMNode $child */
+		foreach ($node->childNodes as $child) {
+			$parent->insertBefore($child->cloneNode(true), $node);
+		}
+
+		$parent->removeChild($node);
+	}
+
 }
