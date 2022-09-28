@@ -29,10 +29,10 @@ final class NodeProcessor
 	public function createElement(string $name, ?string $value = null, array $attributes = []): DOMElement
 	{
 		$document = $this->getDocument();
-		$element = $value === null ? $document->createElement($name) : $document->createElement($name, $value);
+		$element = $value === null ? $document->createElement($name) : $document->createElement($name, htmlspecialchars($value));
 
 		foreach ($attributes as $name => $val) {
-			$element->setAttribute($name, $val);
+			$element->setAttribute($name, htmlspecialchars($val));
 		}
 
 		return $element;
