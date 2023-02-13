@@ -5,6 +5,7 @@ namespace WebChemistry\Html\Visitor;
 use DOMNode;
 use DOMText;
 use Nette\Utils\Strings;
+use WebChemistry\Html\Utility\NodeUtility;
 
 final class TruncateVisitor extends RootVisitor
 {
@@ -15,7 +16,8 @@ final class TruncateVisitor extends RootVisitor
 
 	public function __construct(
 		private int $length,
-		private string $append = "\u{2026}",
+		private string $textAppend = "\u{2026}",
+		private ?string $htmlAppend = null,
 	)
 	{
 	}
@@ -34,16 +36,24 @@ final class TruncateVisitor extends RootVisitor
 		$this->visitChildren($node);
 	}
 
-	private function tryToTruncate(DOMText $node): void
+	private function tryToTruncate(DOMText $node): DOMNode
 	{
+		$return = $node;
 		$length = mb_strlen((string) $node->nodeValue);
 
 		if ($length > $this->_length) {
-			$node->nodeValue = Strings::truncate((string) $node->nodeValue, $this->_length, $this->append);
+			$node->nodeValue = Strings::truncate((string) $node->nodeValue, $this->_length, $this->textAppend);
+
+			if ($append = $this->htmlAppend) {
+				$return = NodeUtility::insertAfter($node, NodeUtility::createHtml($node, $append));
+			}
+
 			$this->truncated = true;
 		}
 
 		$this->_length -= $length;
+
+		return $return;
 	}
 
 	private function visitChildren(DOMNode $node): void
@@ -61,7 +71,7 @@ final class TruncateVisitor extends RootVisitor
 			}
 
 			if ($childNode instanceof DOMText) {
-				$this->tryToTruncate($childNode);
+				$childNode = $this->tryToTruncate($childNode);
 
 			} else {
 				$this->visitChildren($childNode);

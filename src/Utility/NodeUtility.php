@@ -4,15 +4,36 @@ namespace WebChemistry\Html\Utility;
 
 use DomainException;
 use DOMDocument;
+use DOMDocumentFragment;
 use DOMElement;
 use DOMNode;
 use DOMNodeList;
 use DOMXPath;
+use LogicException;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 use WebChemistry\Html\Renderer\NodeRenderer;
 
 final class NodeUtility
 {
+
+	public static function insertAfter(DOMNode $node, DOMNode $toInsert): DOMNode
+	{
+		$parent = $node->parentNode;
+
+		if (!$parent) {
+			throw new LogicException('Cannot insert after node which does not have parent.');
+		}
+
+		return $parent->insertBefore($toInsert, $node->nextSibling);
+	}
+
+	public static function createHtml(DOMNode $node, string $html): DOMDocumentFragment
+	{
+		$fragment = NodeRenderer::getDocument($node)->createDocumentFragment();
+		$fragment->appendXML($html);
+
+		return $fragment;
+	}
 
 	/**
 	 * @return DOMNodeList<DOMNode>
