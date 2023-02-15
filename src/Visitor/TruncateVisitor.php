@@ -12,6 +12,8 @@ final class TruncateVisitor extends RootVisitor
 
 	public bool $truncated = false;
 
+	private array $elementRules = [];
+
 	private int $_length;
 
 	public function __construct(
@@ -20,6 +22,13 @@ final class TruncateVisitor extends RootVisitor
 		private ?string $htmlAppend = null,
 	)
 	{
+	}
+
+	public function setElementRule(string $element, int $length): self
+	{
+		$this->elementRules[strtolower($element)] = $length;
+
+		return $this;
 	}
 
 	public function enterRoot(DOMNode $node): void
@@ -58,6 +67,10 @@ final class TruncateVisitor extends RootVisitor
 
 	private function visitChildren(DOMNode $node): void
 	{
+		if (isset($this->elementRules[$node->nodeName])) {
+			$this->_length -= $this->elementRules[$node->nodeName];
+		}
+
 		$childNode = $node->firstChild;
 
 		while ($childNode) {
