@@ -9,4 +9,6 @@ final class NodeEnterMode
 
 	public bool $stopTraversal = false;
 
+	public bool $removeNode = false;
+
 }

@@ -98,6 +98,12 @@ final class DomVisitor
 				return;
 			}
 
+			if ($mode->removeNode) {
+				$node->parentNode?->removeChild($node);
+
+				return;
+			}
+
 			if ($mode->dontTraverseChildren) {
 				unset($enterVisitors[$key]);
 			}
