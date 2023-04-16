@@ -6,13 +6,15 @@ use DOMNode;
 use DOMText;
 use Nette\Utils\Strings;
 use WebChemistry\Html\Utility\NodeUtility;
+use WebChemistry\Html\Visitor\Rule\TruncateRule;
 
 final class TruncateVisitor extends RootVisitor
 {
 
 	public bool $truncated = false;
 
-	private array $elementRules = [];
+	/** @var TruncateRule[] */
+	private array $rules = [];
 
 	private int $_length;
 
@@ -24,9 +26,9 @@ final class TruncateVisitor extends RootVisitor
 	{
 	}
 
-	public function setElementRule(string $element, int $length): self
+	public function addRule(TruncateRule $rule): self
 	{
-		$this->elementRules[strtolower($element)] = $length;
+		$this->rules[] = $rule;
 
 		return $this;
 	}
@@ -67,8 +69,12 @@ final class TruncateVisitor extends RootVisitor
 
 	private function visitChildren(DOMNode $node): void
 	{
-		if (isset($this->elementRules[$node->nodeName])) {
-			$this->_length -= $this->elementRules[$node->nodeName];
+		foreach ($this->rules as $rule) {
+			if ($rule->matchNode($node)) {
+				$this->_length -= $rule->getLengthToTruncate();
+
+				return;
+			}
 		}
 
 		$childNode = $node->firstChild;
