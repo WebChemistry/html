@@ -3,7 +3,9 @@
 namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
+use Symfony\Component\HtmlSanitizer\Parser\ParserInterface;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\AfterTraverseMode;
 use WebChemistry\Html\Visitor\Mode\BeforeTraverseMode;
 use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
@@ -15,6 +17,7 @@ final class DomVisitor
 	 * @param NodeVisitor[] $nodeVisitors
 	 */
 	public function __construct(
+		private ParserInterface $parser,
 		private array $nodeVisitors = [],
 	)
 	{
@@ -50,16 +53,29 @@ final class DomVisitor
 		}
 
 		$visitors = $this->nodeVisitors;
+		$processor = new NodeProcessor($node, $this->parser);
 
 		foreach ($this->nodeVisitors as $i => $visitor) {
-			$visitor->beforeTraverse($node, $mode = new BeforeTraverseMode());
+			$visitor->beforeTraverse($node, $processor, $mode = new BeforeTraverseMode());
 
 			if ($mode->dontTraverseChildren) {
 				unset($visitors[$i]);
 			}
+
+			if ($mode->stopTraversal) {
+				break;
+			}
 		}
 
 		$this->visitChildren($node, $visitors);
+
+		foreach ($this->nodeVisitors as $i => $visitor) {
+			$visitor->afterTraverse($node, $processor, $mode = new AfterTraverseMode());
+
+			if ($mode->stopTraversal) {
+				break;
+			}
+		}
 	}
 
 	/**
@@ -85,7 +101,7 @@ final class DomVisitor
 	 */
 	private function visitNode(DOMNode $node, array $visitors): void
 	{
-		$processor = new NodeProcessor($node);
+		$processor = new NodeProcessor($node, $this->parser);
 
 		$enterVisitors = $visitors;
 

@@ -2,16 +2,24 @@
 
 namespace WebChemistry\Html\Visitor;
 
+use DOMDocumentFragment;
+use DOMElement;
 use DOMNode;
 use DOMText;
+use LogicException;
 use Nette\Utils\Strings;
+use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Renderer\NodeRenderer;
+use WebChemistry\Html\Utility\HtmlString;
 use WebChemistry\Html\Utility\NodeUtility;
+use WebChemistry\Html\Visitor\Mode\AfterTraverseMode;
+use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 use WebChemistry\Html\Visitor\Rule\TruncateRule;
 
 final class TruncateVisitor extends RootVisitor
 {
 
-	public bool $truncated = false;
+	private bool $truncatedNode = false;
 
 	/** @var TruncateRule[] */
 	private array $rules = [];
@@ -20,8 +28,7 @@ final class TruncateVisitor extends RootVisitor
 
 	public function __construct(
 		private int $length,
-		private string $textAppend = "\u{2026}",
-		private ?string $htmlAppend = null,
+		private string|HtmlString $append = "\u{2026}",
 	)
 	{
 	}
@@ -33,72 +40,107 @@ final class TruncateVisitor extends RootVisitor
 		return $this;
 	}
 
-	public function enterRoot(DOMNode $node): void
+	public function enterRoot(DOMNode $node, NodeProcessor $processor): void
 	{
-		$this->truncated = false;
 		$this->_length = $this->length;
 
-		if ($node instanceof DOMText) {
-			$this->tryToTruncate($node);
+		$visitor = new DomVisitor($processor->getParser(), [
+			new CallbackVisitor(
+				$this->enter(...),
+				afterTraverse: $this->after(...),
+			),
+		]);
 
-			return;
-		}
-
-		$this->visitChildren($node);
+		$visitor->visit($node);
 	}
 
-	private function tryToTruncate(DOMText $node): DOMNode
+	private function enter(DOMNode $node, NodeProcessor $processor, NodeEnterMode $mode): ?DOMNode
 	{
-		$return = $node;
-		$length = mb_strlen((string) $node->nodeValue);
+		if ($this->isTruncated()) {
+			$mode->removeNode = true;
 
-		if ($length > $this->_length) {
-			$node->nodeValue = Strings::truncate((string) $node->nodeValue, $this->_length, $this->textAppend);
-
-			if ($append = $this->htmlAppend) {
-				$return = NodeUtility::insertAfter($node, NodeUtility::createHtml($node, $append));
-			}
-
-			$this->truncated = true;
+			return null;
 		}
 
-		$this->_length -= $length;
+		if ($node instanceof DOMText) {
+			return $this->enterText($node, $processor, $mode);
+		}
+
+		foreach ($this->rules as $rule) {
+			if ($rule->matchNode($node)) {
+				$this->modifyLength($rule->getLengthToTruncate());
+			}
+		}
+
+		return null;
+	}
+
+	private function enterText(DOMText $node, NodeProcessor $processor, NodeEnterMode $mode): ?DOMNode
+	{
+		$previous = $this->_length;
+		$this->modifyLength(mb_strlen((string) $node->nodeValue));
+		$return = null;
+
+		if ($this->isTruncated()) {
+			$return = $this->createTruncatedNode($processor, [
+				$processor->createText(Strings::truncate((string) $node->nodeValue, $previous, '')),
+			]);
+
+			$this->truncatedNode = true;
+		}
 
 		return $return;
 	}
 
-	private function visitChildren(DOMNode $node): void
+	private function after(DOMNode $node, NodeProcessor $processor, AfterTraverseMode $mode): void
 	{
-		foreach ($this->rules as $rule) {
-			if ($rule->matchNode($node)) {
-				$this->_length -= $rule->getLengthToTruncate();
-
-				return;
-			}
+		if ($this->truncatedNode) {
+			return;
 		}
 
-		$childNode = $node->firstChild;
+		$node->appendChild(
+			$this->createTruncatedNode($processor),
+		);
+	}
 
-		while ($childNode) {
-			if ($this->truncated) {
-				$tmpNode = $childNode;
-				$childNode = $childNode->nextSibling;
+	/**
+	 * @param NodeProcessor $processor
+	 * @param DOMNode[] $prependNodes
+	 * @return DOMDocumentFragment
+	 */
+	private function createTruncatedNode(NodeProcessor $processor, array $prependNodes = []): DOMDocumentFragment
+	{
+		$append = $this->append;
 
-				$node->removeChild($tmpNode);
-
-				continue;
-			}
-
-			if ($childNode instanceof DOMText) {
-				$childNode = $this->tryToTruncate($childNode);
-
-			} else {
-				$this->visitChildren($childNode);
-
-			}
-
-			$childNode = $childNode->nextSibling;
+		if ($append instanceof HtmlString) {
+			$appendNode = $processor->createFromHtml($append->getHtml()) ?? throw new LogicException('Cannot create html from string.');
+		} else {
+			$appendNode = $processor->createText($append);
 		}
+
+		$fragment = $processor->createFragment();
+
+		foreach ($prependNodes as $prependNode) {
+			$fragment->appendChild($prependNode);
+		}
+
+		if ($doc = $fragment->ownerDocument) {
+			$appendNode = $doc->importNode($appendNode, true);
+		}
+
+		$fragment->appendChild($appendNode);
+
+		return $fragment;
+	}
+
+	public function isTruncated(): bool
+	{
+		return $this->_length < 0;
+	}
+
+	private function modifyLength(int $length): void
+	{
+		$this->_length -= $length;
 	}
 
 }

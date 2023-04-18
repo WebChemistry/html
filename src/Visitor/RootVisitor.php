@@ -4,6 +4,7 @@ namespace WebChemistry\Html\Visitor;
 
 use DOMNode;
 use WebChemistry\Html\Node\NodeProcessor;
+use WebChemistry\Html\Visitor\Mode\AfterTraverseMode;
 use WebChemistry\Html\Visitor\Mode\BeforeTraverseMode;
 use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
@@ -11,13 +12,22 @@ use WebChemistry\Html\Visitor\Mode\NodeLeaveMode;
 abstract class RootVisitor implements NodeVisitor
 {
 
-	abstract public function enterRoot(DOMNode $node): void;
+	abstract public function enterRoot(DOMNode $node, NodeProcessor $processor): void;
 
-	final public function beforeTraverse(DOMNode $node, BeforeTraverseMode $mode): void
+	public function leaveRoot(DOMNode $node, NodeProcessor $processor): void
 	{
-		$this->enterRoot($node);
+	}
+
+	final public function beforeTraverse(DOMNode $node, NodeProcessor $processor, BeforeTraverseMode $mode): void
+	{
+		$this->enterRoot($node, $processor);
 
 		$mode->dontTraverseChildren = true;
+	}
+
+	public function afterTraverse(DOMNode $node, NodeProcessor $processor, AfterTraverseMode $mode): void
+	{
+		$this->leaveRoot($node, $processor);
 	}
 
 	final public function enterNode(DOMNode $node, NodeProcessor $processor, NodeEnterMode $mode): ?DOMNode

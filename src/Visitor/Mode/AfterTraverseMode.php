@@ -2,11 +2,8 @@
 
 namespace WebChemistry\Html\Visitor\Mode;
 
-final class BeforeTraverseMode
+final class AfterTraverseMode
 {
 
-	public bool $dontTraverseChildren = false;
-
 	public bool $stopTraversal = false;
-
 }

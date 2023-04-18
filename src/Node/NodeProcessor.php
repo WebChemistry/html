@@ -8,14 +8,21 @@ use DOMElement;
 use DOMNode;
 use DOMText;
 use LogicException;
+use Symfony\Component\HtmlSanitizer\Parser\ParserInterface;
 
 final class NodeProcessor
 {
 
 	public function __construct(
 		private DOMNode $node,
+		private ParserInterface $parser,
 	)
 	{
+	}
+
+	public function getParser(): ParserInterface
+	{
+		return $this->parser;
 	}
 
 	public function createText(string $value): DOMText
@@ -36,6 +43,16 @@ final class NodeProcessor
 		}
 
 		return $element;
+	}
+
+	public function createFromHtml(string $html): ?DOMNode
+	{
+		return $this->parser->parse($html);
+	}
+
+	public function createFragment(): DOMDocumentFragment
+	{
+		return $this->getDocument()->createDocumentFragment();
 	}
 
 	public function createCollection(DOMNode ... $nodes): DOMDocumentFragment

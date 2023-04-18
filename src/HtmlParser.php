@@ -26,7 +26,7 @@ final class HtmlParser
 		$this->parser = $parser ?? new MastermindsParser([
 			'disable_html_ns' => true,
 		]);
-		$this->visitor = new DomVisitor($visitors);
+		$this->visitor = new DomVisitor($this->parser, $visitors);
 	}
 
 	public function withVisitor(NodeVisitor $visitor, ?int $insertBefore = null): self
