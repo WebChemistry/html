@@ -21,6 +21,8 @@ final class TruncateVisitor extends RootVisitor
 
 	private bool $truncatedNode = false;
 
+	private bool $removedNode = false;
+
 	/** @var TruncateRule[] */
 	private array $rules = [];
 
@@ -43,6 +45,8 @@ final class TruncateVisitor extends RootVisitor
 	public function enterRoot(DOMNode $node, NodeProcessor $processor): void
 	{
 		$this->_length = $this->length;
+		$this->truncatedNode = false;
+		$this->removedNode = false;
 
 		$visitor = new DomVisitor($processor->getParser(), [
 			new CallbackVisitor(
@@ -58,6 +62,7 @@ final class TruncateVisitor extends RootVisitor
 	{
 		if ($this->isTruncated()) {
 			$mode->removeNode = true;
+			$this->removedNode = true;
 
 			return null;
 		}
@@ -94,7 +99,7 @@ final class TruncateVisitor extends RootVisitor
 
 	private function after(DOMNode $node, NodeProcessor $processor, AfterTraverseMode $mode): void
 	{
-		if ($this->truncatedNode) {
+		if ($this->truncatedNode || !$this->removedNode) {
 			return;
 		}
 
