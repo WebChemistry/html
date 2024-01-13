@@ -72,6 +72,18 @@ final class NodeUtility
 	}
 
 	/**
+	 * @template T
+	 * @param iterable<T> ...$iterables
+	 * @return iterable<T>
+	 */
+	public static function joinIterables(iterable ... $iterables): iterable
+	{
+		foreach ($iterables as $iterable) {
+			yield from $iterable;
+		}
+	}
+
+	/**
 	 * @return DOMNodeList<DOMElement>
 	 */
 	public static function getElementsByTagName(DOMNode $node, string $tagName): DOMNodeList
