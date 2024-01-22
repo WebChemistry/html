@@ -6,27 +6,37 @@ use DOMNode;
 use Nette\Utils\Strings;
 use WebChemistry\Html\Node\NodeProcessor;
 use WebChemistry\Html\Visitor\Mode\BeforeTraverseMode;
+use WebChemistry\Html\Visitor\Trim\TrimElementRule;
+use WebChemistry\Html\Visitor\Trim\TrimElementByName;
+use WebChemistry\Html\Visitor\Trim\TrimTextByName;
+use WebChemistry\Html\Visitor\Trim\TrimTextRule;
 
 final class TrimVisitor extends AbstractNodeVisitor
 {
 
+	private TrimElementRule $trimElementRule;
+
+	private TrimTextRule $trimTextRule;
+
 	/**
-	 * @param string[] $names
 	 * @param bool $startTrim Removes empty elements from start
 	 * @param bool $endTrim Removes empty elements from end
 	 * @param bool $leftTrim Trim spaces from left in element
 	 * @param bool $rightTrim Trim spaces from right in element
-	 * @param int<0,max>|null $maxTrim Max empty elements, null => infinity
+	 * @param int<0,max>|null $maxTrim Max empty elements in the middle of document, null => infinity
 	 */
 	public function __construct(
-		private array $names = ['p'],
 		private bool $startTrim = true,
 		private bool $endTrim = true,
 		private bool $leftTrim = true,
 		private bool $rightTrim = true,
 		private ?int $maxTrim = 1,
+		?TrimElementRule $trimElementRule = null,
+		?TrimTextRule $trimTextRule = null,
 	)
 	{
+		$this->trimElementRule = $trimElementRule ?? new TrimElementByName();
+		$this->trimTextRule = $trimTextRule ?? new TrimTextByName();
 	}
 
 	public function beforeTraverse(DOMNode $node, NodeProcessor $processor, BeforeTraverseMode $mode): void
@@ -55,50 +65,26 @@ final class TrimVisitor extends AbstractNodeVisitor
 	private function startTrim(DOMNode $node): void
 	{
 		while ($child = $node->firstChild) {
-			if (!in_array($child->nodeName, $this->names, true)) {
+			if (!$this->trimElementRule->isTrimable($child)) {
 				break;
 			}
 
-			$parent = $child->parentNode;
-
-			if (!$parent) {
-				break;
-			}
-
-			if ($this->isEmptyNode($child)) {
-				$parent->removeChild($child);
-
-				continue;
-			}
-
-			break;
+			$node->removeChild($child);
 		}
 	}
 
 	private function endTrim(DOMNode $node): void
 	{
 		while ($child = $node->lastChild) {
-			if (!in_array($child->nodeName, $this->names, true)) {
+			if (!$this->trimElementRule->isTrimable($child)) {
 				break;
 			}
 
-			$parent = $child->parentNode;
-
-			if (!$parent) {
-				break;
-			}
-
-			if ($this->isEmptyNode($child)) {
-				$parent->removeChild($child);
-
-				continue;
-			}
-
-			break;
+			$node->removeChild($child);
 		}
 	}
 
-	private function isEmptyNode(DOMNode $node): bool
+	public static function isEmptyNode(DOMNode $node): bool
 	{
 		if (!$node->hasChildNodes()) {
 			return true;
@@ -117,7 +103,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	{
 		/** @var DOMNode $child */
 		foreach ($node->childNodes as $child) {
-			if (!in_array($child->nodeName, $this->names, true)) {
+			if (!$this->trimTextRule->isTrimable($child)) {
 				continue;
 			}
 
@@ -139,7 +125,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	{
 		/** @var DOMNode $child */
 		foreach ($node->childNodes as $child) {
-			if (!in_array($child->nodeName, $this->names, true)) {
+			if (!$this->trimTextRule->isTrimable($child)) {
 				continue;
 			}
 
@@ -168,37 +154,21 @@ final class TrimVisitor extends AbstractNodeVisitor
 		$child = $node->firstChild;
 
 		while ($child) {
-			if (!in_array($child->nodeName, $this->names, true)) {
+			if (!$this->trimElementRule->isTrimable($child)) {
 				$counter = 0;
 				$child = $child->nextSibling;
 
 				continue;
 			}
 
-			$parent = $child->parentNode;
-
-			if (!$parent) {
-				$counter = 0;
-				$child = $child->nextSibling;
-
-				continue;
-			}
-
-			if ($this->isEmptyNode($child)) {
-				$remove = $child;
-				$child = $child->nextSibling;
-
-				if ($counter >= $maxTrim) {
-					$parent->removeChild($remove);
-				}
-
-				$counter++;
-
-				continue;
-			}
-
-			$counter = 0;
+			$remove = $child;
 			$child = $child->nextSibling;
+
+			if ($counter >= $maxTrim) {
+				$node->removeChild($remove);
+			}
+
+			$counter++;
 		}
 	}
 
