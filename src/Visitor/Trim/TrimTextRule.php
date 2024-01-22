@@ -7,6 +7,6 @@ use DOMNode;
 interface TrimTextRule
 {
 
-	public function isTrimable(DOMNode $node): bool;
+	public function isTrimmable(DOMNode $node): bool;
 
 }

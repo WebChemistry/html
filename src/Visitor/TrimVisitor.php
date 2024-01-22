@@ -65,7 +65,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	private function startTrim(DOMNode $node): void
 	{
 		while ($child = $node->firstChild) {
-			if (!$this->trimElementRule->isTrimable($child)) {
+			if (!$this->trimElementRule->isTrimmable($child)) {
 				break;
 			}
 
@@ -76,7 +76,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	private function endTrim(DOMNode $node): void
 	{
 		while ($child = $node->lastChild) {
-			if (!$this->trimElementRule->isTrimable($child)) {
+			if (!$this->trimElementRule->isTrimmable($child)) {
 				break;
 			}
 
@@ -103,7 +103,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	{
 		/** @var DOMNode $child */
 		foreach ($node->childNodes as $child) {
-			if (!$this->trimTextRule->isTrimable($child)) {
+			if (!$this->trimTextRule->isTrimmable($child)) {
 				continue;
 			}
 
@@ -125,7 +125,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 	{
 		/** @var DOMNode $child */
 		foreach ($node->childNodes as $child) {
-			if (!$this->trimTextRule->isTrimable($child)) {
+			if (!$this->trimTextRule->isTrimmable($child)) {
 				continue;
 			}
 
@@ -154,7 +154,7 @@ final class TrimVisitor extends AbstractNodeVisitor
 		$child = $node->firstChild;
 
 		while ($child) {
-			if (!$this->trimElementRule->isTrimable($child)) {
+			if (!$this->trimElementRule->isTrimmable($child)) {
 				$counter = 0;
 				$child = $child->nextSibling;
 

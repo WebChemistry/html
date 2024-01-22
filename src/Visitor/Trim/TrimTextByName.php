@@ -16,7 +16,7 @@ final class TrimTextByName implements TrimTextRule
 	{
 	}
 
-	public function isTrimable(DOMNode $node): bool
+	public function isTrimmable(DOMNode $node): bool
 	{
 		return in_array($node->nodeName, $this->names, true);
 	}

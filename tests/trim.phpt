@@ -13,7 +13,7 @@ Environment::setupFunctions();
 
 $customElementRule = new class implements TrimElementRule {
 
-	public function isTrimable(DOMNode $node): bool
+	public function isTrimmable(DOMNode $node): bool
 	{
 		if ($node->nodeName !== 'p') {
 			return false;
