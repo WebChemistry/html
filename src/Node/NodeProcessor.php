@@ -8,6 +8,7 @@ use DOMElement;
 use DOMNode;
 use DOMText;
 use LogicException;
+use Masterminds\HTML5;
 use Symfony\Component\HtmlSanitizer\Parser\ParserInterface;
 
 final class NodeProcessor
@@ -48,6 +49,13 @@ final class NodeProcessor
 	public function createFromHtml(string $html): ?DOMNode
 	{
 		return $this->parser->parse($html);
+	}
+
+	public function createFragmentFromHtml(string $html): DOMDocumentFragment
+	{
+		return (new HTML5(['disable_html_ns' => true]))->loadHTMLFragment($html, [
+			HTML5\Parser\DOMTreeBuilder::OPT_TARGET_DOC => $this->getDocument(),
+		]);
 	}
 
 	public function createFragment(): DOMDocumentFragment
