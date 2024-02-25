@@ -9,11 +9,11 @@ use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 final class TextVisitor extends AbstractNodeVisitor
 {
 
-	/** @var callable(string, NodeProcessor=): (DOMNode|null) */
+	/** @var callable(string, NodeProcessor): (DOMNode|null) */
 	private $callback;
 
 	/**
-	 * @param callable(string, NodeProcessor=): (DOMNode|null) $callback
+	 * @param callable(string, NodeProcessor): (DOMNode|null) $callback
 	 */
 	public function __construct(callable $callback)
 	{
