@@ -9,11 +9,11 @@ use WebChemistry\Html\Visitor\Mode\NodeEnterMode;
 final class RegexVisitor extends AbstractNodeVisitor
 {
 
-	/** @var callable(string, NodeProcessor=, list<string>=): (DOMNode|null) */
+	/** @var callable(string, NodeProcessor, list<string>): (DOMNode|null) */
 	private $callback;
 
 	/**
-	 * @param callable(string, NodeProcessor=, list<string>=): (DOMNode|null) $callback
+	 * @param callable(string, NodeProcessor, list<string>): (DOMNode|null) $callback
 	 */
 	public function __construct(
 		private string $pattern,

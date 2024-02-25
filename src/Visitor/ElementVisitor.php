@@ -11,7 +11,7 @@ final class ElementVisitor extends CallbackVisitor
 {
 
 	/**
-	 * @param callable(DOMNode, NodeProcessor=, NodeEnterMode=): (DOMNode|null) $callback
+	 * @param callable(DOMNode, NodeProcessor, NodeEnterMode): (DOMNode|null) $callback
 	 * @param string[]|null $tags
 	 */
 	public function __construct(
